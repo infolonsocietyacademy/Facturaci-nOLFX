@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121c2d">
+  <meta name="description" content="Facturador de OLON Society Academy. Crea facturas profesionales y guárdalas como PDF.">
+  <title>OLON Society Academy | Facturador</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #121c2d;
+      --navy-light: #26344a;
+      --gold: #b78b43;
+      --gold-soft: #f6ecd8;
+      --paper: #ffffff;
+      --canvas: #f1f4f8;
+      --ink: #1c2636;
+      --muted: #6a7686;
+      --line: #e3e8ef;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { background: var(--navy); color: #fff; border-bottom: 3px solid var(--gold); }
+    .top-inner { max-width: 1400px; margin: auto; min-height: 82px; padding: 18px 28px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .top-brand { font-size: 20px; font-weight: 900; letter-spacing: .045em; }
+    .top-brand span { color: #e6be77; }
+    .top-sub { margin-top: 4px; font-size: 12px; color: #b8c3d3; letter-spacing: .04em; }
+    .top-pill { color: #eed5a6; border: 1px solid #826736; padding: 8px 14px; border-radius: 100px; font-size: 12px; white-space: nowrap; }
+    .layout { max-width: 1400px; margin: 0 auto; padding: 30px 25px 50px; display: grid; grid-template-columns: minmax(320px, 420px) minmax(0, 1fr); align-items: start; gap: 26px; }
+    .editor { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 25px; box-shadow: 0 10px 25px rgba(19,32,49,.055); }
+    .eyebrow { font-size: 11px; text-transform: uppercase; color: var(--gold); font-weight: 800; letter-spacing: .14em; }
+    .editor h1 { font-size: 25px; margin: 6px 0 5px; letter-spacing: -.035em; }
+    .editor .subtitle { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0 0 19px; }
+    .section-title { display: flex; align-items: center; gap: 9px; margin: 20px 0 12px; padding-top: 17px; border-top: 1px solid var(--line); color: #293850; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; }
+    .section-number { width: 23px; height: 23px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--gold-soft); color: #88651f; font-size: 11px; }
+    .field { margin-bottom: 13px; min-width: 0; }
+    .field label { display: block; font-weight: 700; color: #435269; font-size: 12px; margin-bottom: 6px; }
+    .field input, .field textarea, .field select { display: block; background: #fff; color: var(--ink); border: 1px solid #d6dee9; border-radius: 9px; padding: 11px 12px; width: 100%; min-width: 0; font-size: 14px; outline: 0; transition: border-color .15s, box-shadow .15s; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px #b78b4326; }
+    .field textarea { resize: vertical; min-height: 78px; }
+    .field-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+    .helper { color: var(--muted); font-size: 11px; margin-top: 5px; line-height: 1.4; }
+    .actions { display: grid; gap: 10px; margin-top: 23px; }
+    .primary, .secondary { border: 0; min-height: 47px; border-radius: 10px; font-size: 14px; font-weight: 800; width: 100%; }
+    .primary { background: var(--gold); color: #fff; box-shadow: 0 5px 12px #b78b432d; }
+    .primary:hover { background: #9a722f; }
+    .secondary { color: #1c2b42; background: #e9edf3; }
+    .secondary:hover { background: #dce3ed; }
+    .notice { padding: 12px 13px; background: #f7f8fb; border-radius: 10px; font-size: 12px; color: #617084; line-height: 1.6; margin-top: 14px; }
+    .preview-wrap { min-width: 0; }
+    .preview-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 14px; }
+    .preview-head h2 { margin: 0; font-size: 16px; }
+    .preview-head span { font-size: 12px; color: var(--muted); }
+    .paper { background: var(--paper); box-shadow: 0 16px 45px #1c25341c; border-radius: 12px; min-height: 950px; padding: 48px; border: 1px solid #e8ebf1; overflow-wrap: anywhere; }
+    .invoice-topline { height: 5px; width: 80px; background: var(--gold); border-radius: 6px; margin-bottom: 29px; }
+    .invoice-head { display: flex; justify-content: space-between; gap: 20px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
+    .invoice-logo-text { font-weight: 900; font-size: 24px; letter-spacing: -.045em; line-height: 1.08; color: var(--navy); }
+    .invoice-logo-text strong { color: var(--gold); }
+    .brand-caption { letter-spacing: .19em; font-weight: 700; color: #758195; margin-top: 8px; font-size: 10px; }
+    .issuer-info { color: var(--muted); font-size: 12px; margin-top: 20px; line-height: 1.75; }
+    .invoice-heading { font-size: 29px; font-weight: 850; letter-spacing: -.04em; line-height: 1; text-align: right; color: var(--navy); }
+    .invoice-number { text-align: right; font-size: 13px; font-weight: 700; color: var(--gold); margin: 9px 0 0; }
+    .invoice-dates { margin-top: 20px; display: grid; grid-template-columns: auto auto; gap: 7px 14px; justify-content: end; font-size: 12px; }
+    .invoice-dates dt { color: var(--muted); text-align: right; }
+    .invoice-dates dd { margin: 0; font-weight: 700; text-align: right; }
+    .invoice-details { display: flex; justify-content: space-between; gap: 15px; margin: 32px 0 34px; }
+    .small-caps { font-size: 10px; text-transform: uppercase; color: var(--gold); font-weight: 850; letter-spacing: .13em; margin: 0 0 10px; }
+    .recipient-name { font-size: 19px; font-weight: 850; margin: 0 0 5px; color: var(--navy); }
+    .recipient-sub { color: var(--muted); font-size: 12px; margin: 0; }
+    .status-badge { display: inline-flex; align-items: center; min-height: 29px; background: var(--gold-soft); border-radius: 6px; color: #85611e; padding: 4px 10px; font-size: 11px; font-weight: 800; }
+    .status-badge.paid { background: #e4f5ed; color: #187147; }
+    .status-badge.cancelled { background: #fbe8e8; color: #a23c3c; }
+    .invoice-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .invoice-table thead { background: var(--navy); color: #fff; }
+    .invoice-table th { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; padding: 15px 16px; text-align: left; }
+    .invoice-table th:last-child, .invoice-table td:last-child { text-align: right; width: 28%; }
+    .invoice-table td { padding: 17px 16px; border-bottom: 1px solid var(--line); font-size: 13px; vertical-align: top; }
+    .line-title { display: block; color: var(--ink); font-weight: 750; font-size: 13px; }
+    .line-sub { display: block; color: var(--muted); line-height: 1.5; margin-top: 4px; font-size: 11px; }
+    .amount { font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .discount-amount { color: #167046; }
+    .totals { width: min(100%, 345px); margin: 22px 0 0 auto; }
+    .totals-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 3px; color: #556174; font-size: 13px; }
+    .totals-row strong { font-variant-numeric: tabular-nums; color: var(--ink); }
+    .total-main { background: var(--navy); border-radius: 9px; color: white; display: flex; align-items: center; justify-content: space-between; padding: 18px; margin-top: 13px; gap: 10px; }
+    .total-main span:first-child { font-size: 12px; font-weight: 750; letter-spacing: .04em; }
+    .total-main strong { font-size: 24px; white-space: nowrap; }
+    .invoice-foot { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 52px; border-top: 1px solid var(--line); padding-top: 23px; }
+    .invoice-foot p { color: #596779; line-height: 1.65; margin: 0 0 8px; font-size: 12px; white-space: pre-line; }
+    .thankyou { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 38px; color: var(--gold); font-size: 12px; font-weight: 850; }
+    .hidden { display: none !important; }
+    @media(max-width: 1120px) { .layout { grid-template-columns: 370px minmax(0, 1fr); gap: 17px; padding: 21px 16px; } .paper { padding: 28px; } .invoice-head { gap: 10px; } .invoice-logo-text { font-size: 20px; } .invoice-heading { font-size: 24px; } }
+    @media(max-width: 850px) { .layout { grid-template-columns: 1fr; max-width: 740px; } .paper { min-height: auto; } .editor { padding: 20px; } }
+    @media(max-width: 530px) { .top-inner { padding: 17px 14px; } .top-brand { font-size: 16px; } .top-pill { display: none; } .layout { padding: 13px 10px; } .paper { padding: 21px 16px; } .invoice-head { flex-wrap: wrap; } .invoice-heading, .invoice-number { text-align: left; } .invoice-dates { justify-content: start; } .invoice-dates dt, .invoice-dates dd { text-align: left; } .invoice-details { margin: 22px 0; } .invoice-table th, .invoice-table td { padding: 12px 9px; } .invoice-foot { grid-template-columns: 1fr; gap: 16px; } .total-main strong { font-size: 20px; } }
+    @page { size: letter; margin: 10mm; }
+    @media print {
+      html, body { width: auto !important; background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .topbar, .editor, .preview-head { display: none !important; }
+      .layout { display: block; max-width: none; width: 100%; margin: 0; padding: 0; }
+      .preview-wrap { width: 100%; }
+      .paper { width: 100%; border: 0; box-shadow: none; padding: 6mm 4mm 0; margin: 0; min-height: 0; border-radius: 0; font-size: 10pt; }
+      .invoice-head { break-inside: avoid; }
+      .invoice-details { break-inside: avoid; margin: 22px 0 26px; }
+      .invoice-table tr, .totals, .invoice-foot, .total-main, .thankyou { break-inside: avoid; }
+      .invoice-foot { margin-top: 32px; }
+      .thankyou { margin-top: 24px; }
+      .invoice-logo-text { font-size: 21px; }
+      .invoice-heading { font-size: 27px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="top-inner">
+      <div><div class="top-brand">OLON <span>SOCIETY ACADEMY</span></div><div class="top-sub">SISTEMA DE FACTURACIÓN</div></div>
+      <span class="top-pill">FACTURADOR PROFESIONAL</span>
+    </div>
+  </header>
+  <main class="layout">
+    <section class="editor" aria-label="Editor de factura">
+      <div class="eyebrow">OLON · Facturador</div>
+      <h1>Crea tu factura</h1>
+      <p class="subtitle">Completa la información y visualiza tu factura en tiempo real. Luego guárdala como PDF.</p>
+      <form id="invoiceForm">
+        <div class="section-title"><span class="section-number">01</span> Datos generales</div>
+        <div class="field-row">
+          <div class="field"><label for="number">Número de factura</label><input id="number" name="number" required maxlength="35" value="OSA-0001"></div>
+          <div class="field"><label for="issueDate">Fecha de emisión</label><input id="issueDate" name="issueDate" type="date" required></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="dueDate">Vencimiento (opcional)</label><input id="dueDate" name="dueDate" type="date"></div>
+          <div class="field"><label for="status">Estado</label><select id="status" name="status"><option value="pending">Pendiente</option><option value="paid">Pagada</option><option value="cancelled">Anulada</option></select></div>
+        </div>
+        <div class="field"><label for="client">Nombre del cliente</label><input id="client" name="client" required maxlength="100" value="Karina Aviles" placeholder="Nombre y apellido"></div>
+        <div class="field"><label for="detail">Detalle / correo del cliente (opcional)</label><input id="detail" name="detail" maxlength="130" placeholder="Correo, teléfono u otro detalle"></div>
+
+        <div class="section-title"><span class="section-number">02</span> Servicio y precios</div>
+        <div class="field"><label for="service">Servicio</label><input id="service" name="service" maxlength="150" required value="Curso intensivo de Trading · 5 días"></div>
+        <div class="field-row">
+          <div class="field"><label for="price">Precio regular (USD)</label><input id="price" name="price" type="number" min="0" max="100000000" step="0.01" required value="500"></div>
+          <div class="field"><label for="discount">Descuento (%)</label><input id="discount" name="discount" type="number" min="0" max="100" step="0.01" required value="30"></div>
+        </div>
+        <div class="section-title"><span class="section-number">03</span> Beneficio incluido</div>
+        <div class="field"><label for="benefit">Beneficio adicional (opcional)</label><input id="benefit" name="benefit" maxlength="130" value="1 mes de VIP GRATIS"></div>
+        <div class="field"><label for="benefitValue">Valor comercial del beneficio (USD)</label><input id="benefitValue" name="benefitValue" type="number" min="0" max="100000000" step="0.01" value="120"><div class="helper">El beneficio aparece como gratuito y no aumenta el total.</div></div>
+        <div class="section-title"><span class="section-number">04</span> Pago y condiciones</div>
+        <div class="field"><label for="paymentMethods">Métodos de pago</label><input id="paymentMethods" name="paymentMethods" maxlength="150" value="PayPal · ATH Móvil"></div>
+        <div class="field"><label for="paymentDetails">Información para pagar (opcional)</label><input id="paymentDetails" name="paymentDetails" maxlength="180" placeholder="Correo PayPal / número ATH Móvil"></div>
+        <div class="field"><label for="notes">Notas / condiciones</label><textarea id="notes" name="notes" maxlength="650">Descuento especial de pareja (30%). Incluye 1 mes del VIP de OLON SOCIETY ACADEMY sin costo adicional.</textarea></div>
+        <div class="actions">
+          <button class="primary" id="pdfButton" type="button">⬇ Guardar factura como PDF</button>
+          <button class="secondary" id="newButton" type="button">+ Crear nueva factura</button>
+        </div>
+        <div class="notice">Para obtener el PDF, haz clic en <strong>Guardar factura como PDF</strong> y en la ventana de impresión selecciona <strong>Guardar como PDF</strong>. Esta página funciona sin cuentas, bases de datos ni servicios externos.</div>
+      </form>
+    </section>
+
+    <div class="preview-wrap">
+      <div class="preview-head"><h2>Vista previa</h2><span>Formato carta · 1 hoja</span></div>
+      <article class="paper" aria-label="Vista previa de factura" id="invoice">
+        <div class="invoice-topline"></div>
+        <div class="invoice-head">
+          <div>
+            <div class="invoice-logo-text">OLON <strong>SOCIETY</strong><div>ACADEMY</div></div>
+            <div class="brand-caption">EDUCACIÓN EN TRADING</div>
+            <div class="issuer-info">Servicios de educación y formación<br>Puerto Rico · USD</div>
+          </div>
+          <div>
+            <div class="invoice-heading">FACTURA</div>
+            <div class="invoice-number" id="viewNumber">OSA-0001</div>
+            <dl class="invoice-dates">
+              <dt>Fecha:</dt><dd id="viewIssueDate"></dd>
+              <dt id="dueLabel" class="hidden">Vence:</dt><dd id="viewDueDate" class="hidden"></dd>
+            </dl>
+          </div>
+        </div>
+        <div class="invoice-details">
+          <div>
+            <h3 class="small-caps">Facturar a</h3>
+            <p class="recipient-name" id="viewClient">Karina Aviles</p>
+            <p class="recipient-sub" id="viewDetail"></p>
+          </div>
+          <div><h3 class="small-caps">Estado</h3><span class="status-badge" id="viewStatus">PENDIENTE</span></div>
+        </div>
+        <table class="invoice-table" aria-label="Detalle de la factura">
+          <thead><tr><th>Descripción del servicio</th><th>Importe</th></tr></thead>
+          <tbody>
+            <tr><td><span class="line-title" id="viewService"></span><span class="line-sub">Servicio de capacitación</span></td><td class="amount" id="viewPrice"></td></tr>
+            <tr id="discountRow"><td><span class="line-title">Descuento aplicado (<span id="viewDiscountPct"></span>%)</span><span class="line-sub">Promoción especial</span></td><td class="amount discount-amount" id="viewDiscountValue"></td></tr>
+            <tr id="benefitRow"><td><span class="line-title" id="viewBenefit"></span><span class="line-sub">Valor comercial: <span id="viewBenefitValue"></span> · Incluido sin costo</span></td><td class="amount">$0.00</td></tr>
+          </tbody>
+        </table>
+        <div class="totals">
+          <div class="totals-row"><span>Subtotal</span><strong id="viewSubtotal"></strong></div>
+          <div class="totals-row" id="totalDiscountRow"><span>Descuento</span><strong id="viewTotalDiscount"></strong></div>
+          <div class="total-main"><span>TOTAL A PAGAR · USD</span><strong id="viewTotal"></strong></div>
+        </div>
+        <div class="invoice-foot">
+          <div id="paymentSection"><h3 class="small-caps">Métodos de pago</h3><p id="viewPaymentMethods"></p><p id="viewPaymentDetails"></p></div>
+          <div id="notesSection"><h3 class="small-caps">Notas</h3><p id="viewNotes"></p></div>
+        </div>
+        <div class="thankyou">¡GRACIAS POR CONFIAR EN OLON SOCIETY ACADEMY!</div>
+      </article>
+    </div>
+  </main>
+  <script>
+    'use strict';
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const fields = ['number','issueDate','dueDate','status','client','detail','service','price','discount','benefit','benefitValue','paymentMethods','paymentDetails','notes'];
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const localDate = () => {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      };
+      const displayDate = value => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '—';
+        const [year, month, day] = value.split('-');
+        return `${day}/${month}/${year}`;
+      };
+      const cleanNumber = id => {
+        const n = Number($(id).value);
+        return Number.isFinite(n) ? Math.max(0, n) : 0;
+      };
+      const setText = (id, value) => { $(id).textContent = value; };
+      const toggle = (id, show) => $(id).classList.toggle('hidden', !show);
+
+      function render() {
+        const price = cleanNumber('price');
+        const discount = Math.min(100, cleanNumber('discount'));
+        const benefitValue = cleanNumber('benefitValue');
+        const off = Math.round(price * discount) / 100;
+        const total = Math.max(0, Math.round((price - off) * 100) / 100);
+        const benefit = $('benefit').value.trim();
+        const due = $('dueDate').value;
+        const status = $('status').value;
+        const payments = $('paymentMethods').value.trim();
+        const paymentDetails = $('paymentDetails').value.trim();
+        const notes = $('notes').value.trim();
+
+        setText('viewNumber', $('number').value.trim() || '—');
+        setText('viewIssueDate', displayDate($('issueDate').value));
+        setText('viewDueDate', displayDate(due));
+        toggle('dueLabel', Boolean(due));
+        toggle('viewDueDate', Boolean(due));
+        setText('viewClient', $('client').value.trim() || 'Nombre del cliente');
+        setText('viewDetail', $('detail').value.trim());
+        setText('viewService', $('service').value.trim() || 'Descripción del servicio');
+        setText('viewPrice', money.format(price));
+        setText('viewSubtotal', money.format(price));
+        setText('viewDiscountPct', String(discount));
+        setText('viewDiscountValue', '−' + money.format(off));
+        setText('viewTotalDiscount', '−' + money.format(off));
+        setText('viewTotal', money.format(total));
+        setText('viewBenefit', benefit);
+        setText('viewBenefitValue', money.format(benefitValue));
+        setText('viewPaymentMethods', payments);
+        setText('viewPaymentDetails', paymentDetails);
+        setText('viewNotes', notes);
+        setText('viewStatus', status === 'paid' ? 'PAGADA' : status === 'cancelled' ? 'ANULADA' : 'PENDIENTE');
+
+        $('viewStatus').className = 'status-badge' + (status === 'paid' ? ' paid' : status === 'cancelled' ? ' cancelled' : '');
+        toggle('discountRow', discount > 0);
+        toggle('totalDiscountRow', discount > 0);
+        toggle('benefitRow', Boolean(benefit));
+        toggle('paymentSection', Boolean(payments || paymentDetails));
+        toggle('notesSection', Boolean(notes));
+        toggle('viewPaymentDetails', Boolean(paymentDetails));
+        toggle('viewPaymentMethods', Boolean(payments));
+        toggle('viewDetail', Boolean($('detail').value.trim()));
+      }
+
+      // Resolve optional layout without relying on any external libraries.
+      function update() {
+        render();
+        const footHasContent = !$('paymentSection').classList.contains('hidden') || !$('notesSection').classList.contains('hidden');
+        $('invoiceFoot').classList.toggle('hidden', !footHasContent);
+      }
+
+      $('issueDate').value = localDate();
+      fields.forEach(id => {
+        $(id).addEventListener('input', update);
+        $(id).addEventListener('change', update);
+      });
+      $('pdfButton').addEventListener('click', () => {
+        if (!$('invoiceForm').reportValidity()) return;
+        update();
+        window.print();
+      });
+      $('newButton').addEventListener('click', () => {
+        const original = $('number').value;
+        const match = original.match(/^(.*?)(\d+)$/);
+        const next = match ? match[1] + String(Number(match[2]) + 1).padStart(match[2].length, '0') : 'OSA-0001';
+        $('invoiceForm').reset();
+        $('number').value = next;
+        $('issueDate').value = localDate();
+        $('dueDate').value = '';
+        $('status').value = 'pending';
+        $('client').value = '';
+        $('detail').value = '';
+        $('service').value = '';
+        $('price').value = '0';
+        $('discount').value = '0';
+        $('benefit').value = '';
+        $('benefitValue').value = '0';
+        $('paymentDetails').value = '';
+        $('notes').value = '';
+        update();
+        $('client').focus();
+      });
+      // Assign an ID to the foot wrapper to support hiding it when all notes are empty.
+      document.querySelector('.invoice-foot').id = 'invoiceFoot';
+      update();
+    }());
+  </script>
+</body>
+</html>

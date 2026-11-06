@@ -84,6 +84,7 @@
       padding: 3px 8px; border: 1px solid var(--line); border-radius: 5px;
       color: var(--muted); font-size: .72rem; font-weight: 650; white-space: nowrap;
     }
+    .invoice-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
     .form-section { display: grid; gap: 12px; padding: 19px 22px 20px; }
     .form-section + .form-section { border-top: 1px solid var(--line); }
     .section-title { display: flex; align-items: center; gap: 9px; font-size: .91rem; font-weight: 750; }
@@ -114,14 +115,23 @@
     .button {
       display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px;
       padding: 8px 12px; border: 1px solid transparent; border-radius: 8px; font-size: .83rem;
-      font-weight: 750; line-height: 1.2; white-space: nowrap;
+      font-weight: 750; line-height: 1.2; white-space: nowrap; text-decoration: none;
     }
     .button svg { flex: none; }
     .button-primary { color: var(--white); background: var(--navy); }
     .button-primary:hover { background: #263b55; }
     .button-quiet { color: var(--ink); border-color: #cbd7e2; background: var(--white); }
     .button-quiet:hover { background: var(--canvas); }
-    .print-help { margin-top: 8px; color: var(--muted); font-size: .74rem; }
+    .pdf-help { margin-top: 8px; color: var(--muted); font-size: .74rem; }
+    .pdf-actions {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 2px 14px;
+      margin-top: 6px; color: var(--muted); font-size: .79rem;
+    }
+    .pdf-actions span { color: #1f6045; font-weight: 750; }
+    .pdf-actions a, .pdf-actions button {
+      display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0;
+      color: var(--ink); background: transparent; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+    }
 
     .preview { overflow: hidden; }
     .preview-head { background: var(--white); }
@@ -197,7 +207,7 @@
 
     @media screen and (max-width: 920px) {
       .appbar-inner, .workspace { max-width: 660px; padding-inline: 16px; }
-      .workspace { padding-block: 24px calc(106px + env(safe-area-inset-bottom)); }
+      .workspace { padding-block: 24px calc(148px + env(safe-area-inset-bottom)); }
       .intro { grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
       .intro-copy > p:last-of-type { font-size: .88rem; }
       .jump-link { display: inline-flex; align-items: center; min-height: 44px; font-size: .84rem; font-weight: 750; text-underline-offset: 3px; }
@@ -210,10 +220,10 @@
           calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
         border-radius: 0; box-shadow: 0 -3px 14px #101d2e12;
       }
-      .action-inner, .action-bar > p { max-width: 628px; margin-inline: auto; }
+      .action-inner, .action-bar > p, .pdf-actions { max-width: 628px; margin-inline: auto; }
       .action-total strong { font-size: clamp(.9rem, 4vw, 1.12rem); }
       .action-buttons .button { padding-inline: 9px; }
-      .print-help { display: none; }
+      .pdf-help { display: none; }
     }
 
     @media screen and (max-width: 470px) {
@@ -303,87 +313,89 @@
           <span class="panel-tag">USD</span>
         </div>
         <form id="invoiceForm">
-          <section class="form-section" aria-labelledby="clientHeading">
-            <h3 class="section-title" id="clientHeading"><span class="section-number" aria-hidden="true">01</span> Cliente y fechas</h3>
-            <div class="field">
-              <label for="client">Nombre del cliente</label>
-              <input id="client" maxlength="110" placeholder="Nombre completo" required>
-            </div>
-            <div class="field">
-              <label for="detail">Correo o teléfono <span class="hint">(opcional)</span></label>
-              <input id="detail" maxlength="130" placeholder="Datos de contacto">
-            </div>
-            <div class="field-grid">
+          <fieldset class="invoice-fields" id="invoiceFields">
+            <section class="form-section" aria-labelledby="clientHeading">
+              <h3 class="section-title" id="clientHeading"><span class="section-number" aria-hidden="true">01</span> Cliente y fechas</h3>
               <div class="field">
-                <label for="issueDate">Fecha de emisión</label>
-                <input id="issueDate" type="date" required>
+                <label for="client">Nombre del cliente</label>
+                <input id="client" maxlength="110" placeholder="Nombre completo" required>
               </div>
               <div class="field">
-                <label for="dueDate">Fecha de vencimiento</label>
-                <input id="dueDate" type="date">
+                <label for="detail">Correo o teléfono <span class="hint">(opcional)</span></label>
+                <input id="detail" maxlength="130" placeholder="Datos de contacto">
               </div>
-            </div>
-            <div class="field">
-              <label for="status">Estado</label>
-              <select id="status">
-                <option value="pending">Pendiente</option>
-                <option value="paid">Pagada</option>
-                <option value="cancelled">Anulada</option>
-              </select>
-            </div>
-          </section>
-
-          <section class="form-section" aria-labelledby="serviceHeading">
-            <h3 class="section-title" id="serviceHeading"><span class="section-number" aria-hidden="true">02</span> Servicio y descuento</h3>
-            <div class="field">
-              <label for="service">Descripción del servicio</label>
-              <input id="service" maxlength="150" placeholder="Ej. Curso intensivo de trading" required>
-            </div>
-            <div class="field-grid">
-              <div class="field">
-                <label for="price">Precio regular (USD)</label>
-                <input id="price" type="number" inputmode="decimal" min="0" max="100000000" step=".01" placeholder="0.00" required>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="issueDate">Fecha de emisión</label>
+                  <input id="issueDate" type="date" required>
+                </div>
+                <div class="field">
+                  <label for="dueDate">Fecha de vencimiento</label>
+                  <input id="dueDate" type="date">
+                </div>
               </div>
               <div class="field">
-                <label for="discount">Descuento (%)</label>
-                <input id="discount" type="number" inputmode="decimal" min="0" max="100" step=".01" value="0">
+                <label for="status">Estado</label>
+                <select id="status">
+                  <option value="pending">Pendiente</option>
+                  <option value="paid">Pagada</option>
+                  <option value="cancelled">Anulada</option>
+                </select>
               </div>
-            </div>
-            <div class="field">
-              <label for="discountLabel">Concepto del descuento <span class="hint">(opcional)</span></label>
-              <input id="discountLabel" maxlength="80" placeholder="Ej. Promoción especial">
-            </div>
-          </section>
+            </section>
 
-          <section class="form-section" aria-labelledby="benefitHeading">
-            <h3 class="section-title" id="benefitHeading"><span class="section-number" aria-hidden="true">03</span> Cortesía</h3>
-            <div class="field">
-              <label for="benefit">Beneficio incluido <span class="hint">(opcional)</span></label>
-              <input id="benefit" maxlength="130" placeholder="Ej. 1 mes de acceso VIP">
-            </div>
-            <div class="field">
-              <label for="benefitValue">Valor de referencia (USD)</label>
-              <input id="benefitValue" type="number" inputmode="decimal" min="0" max="100000000" step=".01" placeholder="0.00" aria-describedby="benefitHint">
-              <p class="hint" id="benefitHint">El beneficio se muestra como cortesía y el total a pagar queda igual.</p>
-            </div>
-          </section>
+            <section class="form-section" aria-labelledby="serviceHeading">
+              <h3 class="section-title" id="serviceHeading"><span class="section-number" aria-hidden="true">02</span> Servicio y descuento</h3>
+              <div class="field">
+                <label for="service">Descripción del servicio</label>
+                <input id="service" maxlength="150" placeholder="Ej. Curso intensivo de trading" required>
+              </div>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="price">Precio regular (USD)</label>
+                  <input id="price" type="number" inputmode="decimal" min="0" max="100000000" step=".01" placeholder="0.00" required>
+                </div>
+                <div class="field">
+                  <label for="discount">Descuento (%)</label>
+                  <input id="discount" type="number" inputmode="decimal" min="0" max="100" step=".01" value="0">
+                </div>
+              </div>
+              <div class="field">
+                <label for="discountLabel">Concepto del descuento <span class="hint">(opcional)</span></label>
+                <input id="discountLabel" maxlength="80" placeholder="Ej. Promoción especial">
+              </div>
+            </section>
 
-          <section class="form-section" aria-labelledby="paymentHeading">
-            <h3 class="section-title" id="paymentHeading"><span class="section-number" aria-hidden="true">04</span> Pago y notas</h3>
-            <div class="field">
-              <label for="paymentMethods">Métodos aceptados</label>
-              <input id="paymentMethods" maxlength="140" value="PayPal · ATH Móvil">
-            </div>
-            <div class="field">
-              <label for="paymentDetails">Datos para pagar <span class="hint">(opcional)</span></label>
-              <input id="paymentDetails" maxlength="200" placeholder="Cuenta PayPal o número de ATH Móvil">
-            </div>
-            <div class="field">
-              <label for="notes">Notas para el cliente <span class="hint">(opcional)</span></label>
-              <textarea id="notes" maxlength="600" placeholder="Detalles o instrucciones para el cliente"></textarea>
-            </div>
-          </section>
+            <section class="form-section" aria-labelledby="benefitHeading">
+              <h3 class="section-title" id="benefitHeading"><span class="section-number" aria-hidden="true">03</span> Cortesía</h3>
+              <div class="field">
+                <label for="benefit">Beneficio incluido <span class="hint">(opcional)</span></label>
+                <input id="benefit" maxlength="130" placeholder="Ej. 1 mes de acceso VIP">
+              </div>
+              <div class="field">
+                <label for="benefitValue">Valor de referencia (USD)</label>
+                <input id="benefitValue" type="number" inputmode="decimal" min="0" max="100000000" step=".01" placeholder="0.00" aria-describedby="benefitHint">
+                <p class="hint" id="benefitHint">El beneficio se muestra como cortesía y el total a pagar queda igual.</p>
+              </div>
+            </section>
 
+            <section class="form-section" aria-labelledby="paymentHeading">
+              <h3 class="section-title" id="paymentHeading"><span class="section-number" aria-hidden="true">04</span> Pago y notas</h3>
+              <div class="field">
+                <label for="paymentMethods">Métodos aceptados</label>
+                <input id="paymentMethods" maxlength="140" value="PayPal · ATH Móvil">
+              </div>
+              <div class="field">
+                <label for="paymentDetails">Datos para pagar <span class="hint">(opcional)</span></label>
+                <input id="paymentDetails" maxlength="200" placeholder="Cuenta PayPal o número de ATH Móvil">
+              </div>
+              <div class="field">
+                <label for="notes">Notas para el cliente <span class="hint">(opcional)</span></label>
+                <textarea id="notes" maxlength="600" placeholder="Detalles o instrucciones para el cliente"></textarea>
+              </div>
+            </section>
+
+          </fieldset>
           <div class="action-bar">
             <div class="action-inner">
               <div class="action-total"><span>Total a pagar</span><strong id="actionTotal">$0.00</strong></div>
@@ -392,13 +404,19 @@
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
                   <span>Nueva<span class="new-label"> factura</span></span>
                 </button>
-                <button type="submit" class="button button-primary" id="pdfButton" aria-describedby="printHelp">
+                <button type="submit" class="button button-primary" id="pdfButton" aria-describedby="pdfHelp" disabled>
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/></svg>
-                  Generar PDF
+                  <span id="pdfButtonLabel">Generar PDF</span>
                 </button>
+                <a class="button button-primary" id="downloadPdf" download hidden>Descargar PDF</a>
               </div>
             </div>
-            <p class="print-help" id="printHelp">Abre el menú de impresión para guardar la factura como PDF.</p>
+            <p class="pdf-help" id="pdfHelp">Genera el archivo y luego toca Descargar PDF para guardarlo.</p>
+            <div class="pdf-actions" id="pdfActions" hidden>
+              <span role="status">PDF listo</span>
+              <a id="openPdf" target="_blank" rel="noopener">Abrir PDF</a>
+              <button type="button" id="sharePdf" hidden>Compartir PDF</button>
+            </div>
             <p class="feedback" id="invoiceFeedback" role="status" hidden></p>
           </div>
         </form>
@@ -479,6 +497,8 @@
     </div>
   </main>
 
+  <script src="./vendor/pdf-lib.min.js"></script>
+  <script src="./invoice-pdf.js"></script>
   <script>
     "use strict";
 
@@ -501,6 +521,7 @@
     let assignedNumber = null;
     let busy = false;
     let database;
+    let generatedPdf = null;
 
     function showMessage(id, message) {
       setText(id, message);
@@ -571,6 +592,7 @@
 
     function setBusy(value) {
       busy = value;
+      element("invoiceFields").disabled = value;
       element("pdfButton").disabled = value;
       element("newButton").disabled = value;
       element("sequenceButton").disabled = value;
@@ -591,57 +613,109 @@
       const cents = Math.round(fieldAmount("price") * 100);
       const discount = Math.min(100, fieldAmount("discount"));
       const discountCents = Math.round(cents * Math.round(discount * 100) / 10000);
-      const total = money.format((cents - discountCents) / 100);
-      const regularPrice = money.format(cents / 100);
-      const discountValue = money.format((0 - discountCents) / 100);
-      const detail = fieldValue("detail");
-      const due = fieldValue("dueDate");
-      const benefit = fieldValue("benefit");
-      const methods = fieldValue("paymentMethods");
-      const paymentDetails = fieldValue("paymentDetails");
-      const notes = fieldValue("notes");
       const status = element("status");
+      const dueDate = fieldValue("dueDate");
+      const invoice = {
+        number: assignedNumber === null ? "" : formatNumber(assignedNumber),
+        client: fieldValue("client"),
+        detail: fieldValue("detail"),
+        issueDate: displayDate(fieldValue("issueDate")),
+        dueDate: dueDate ? displayDate(dueDate) : "",
+        status: status.value,
+        statusLabel: status.selectedOptions[0].textContent,
+        service: fieldValue("service"),
+        regularPrice: money.format(cents / 100),
+        hasDiscount: discount > 0,
+        discountLabel: fieldValue("discountLabel") || "Descuento aplicado",
+        discountDetail: discount.toLocaleString("es-PR") + "% del precio regular",
+        discountValue: money.format((0 - discountCents) / 100),
+        benefit: fieldValue("benefit"),
+        benefitValue: money.format(fieldAmount("benefitValue")),
+        total: money.format((cents - discountCents) / 100),
+        methods: fieldValue("paymentMethods"),
+        paymentDetails: fieldValue("paymentDetails"),
+        notes: fieldValue("notes")
+      };
 
-      setText("viewClient", fieldValue("client") || "Nombre del cliente");
-      setText("viewDetail", detail);
-      setVisible("viewDetail", Boolean(detail));
-      setText("viewIssueDate", displayDate(fieldValue("issueDate")));
-      setText("viewDueDate", displayDate(due));
-      setVisible("dueLabel", Boolean(due));
-      setVisible("viewDueDate", Boolean(due));
-      setText("viewStatus", status.selectedOptions[0].textContent);
-      element("viewStatus").dataset.status = status.value;
+      setText("viewClient", invoice.client || "Nombre del cliente");
+      setText("viewDetail", invoice.detail);
+      setVisible("viewDetail", Boolean(invoice.detail));
+      setText("viewIssueDate", invoice.issueDate);
+      setText("viewDueDate", invoice.dueDate);
+      setVisible("dueLabel", Boolean(invoice.dueDate));
+      setVisible("viewDueDate", Boolean(invoice.dueDate));
+      setText("viewStatus", invoice.statusLabel);
+      element("viewStatus").dataset.status = invoice.status;
 
-      setText("viewService", fieldValue("service") || "Descripción del servicio");
-      setText("viewPrice", regularPrice);
-      setText("viewSubtotal", regularPrice);
-      setText("viewDiscountLabel", fieldValue("discountLabel") || "Descuento aplicado");
-      setText("viewDiscountPct", discount.toLocaleString("es-PR") + "% del precio regular");
-      setText("viewDiscountValue", discountValue);
-      setText("viewTotalDiscount", discountValue);
-      setVisible("discountRow", discount > 0);
-      setVisible("totalDiscountRow", discount > 0);
-      setText("viewBenefit", benefit);
-      setText("viewBenefitValue", money.format(fieldAmount("benefitValue")));
-      setVisible("benefitRow", Boolean(benefit));
-      setText("viewTotal", total);
-      setText("actionTotal", total);
+      setText("viewService", invoice.service || "Descripción del servicio");
+      setText("viewPrice", invoice.regularPrice);
+      setText("viewSubtotal", invoice.regularPrice);
+      setText("viewDiscountLabel", invoice.discountLabel);
+      setText("viewDiscountPct", invoice.discountDetail);
+      setText("viewDiscountValue", invoice.discountValue);
+      setText("viewTotalDiscount", invoice.discountValue);
+      setVisible("discountRow", invoice.hasDiscount);
+      setVisible("totalDiscountRow", invoice.hasDiscount);
+      setText("viewBenefit", invoice.benefit);
+      setText("viewBenefitValue", invoice.benefitValue);
+      setVisible("benefitRow", Boolean(invoice.benefit));
+      setText("viewTotal", invoice.total);
+      setText("actionTotal", invoice.total);
 
-      setText("viewPaymentMethods", methods);
-      setText("viewPaymentDetails", paymentDetails);
-      setText("viewNotes", notes);
-      setVisible("viewPaymentMethods", Boolean(methods));
-      setVisible("viewPaymentDetails", Boolean(paymentDetails));
-      setVisible("paymentSection", Boolean(methods || paymentDetails));
-      setVisible("notesSection", Boolean(notes));
-      setVisible("invoiceFoot", Boolean(methods || paymentDetails || notes));
+      const hasPayment = Boolean(invoice.methods || invoice.paymentDetails);
+      setText("viewPaymentMethods", invoice.methods);
+      setText("viewPaymentDetails", invoice.paymentDetails);
+      setText("viewNotes", invoice.notes);
+      setVisible("viewPaymentMethods", Boolean(invoice.methods));
+      setVisible("viewPaymentDetails", Boolean(invoice.paymentDetails));
+      setVisible("paymentSection", hasPayment);
+      setVisible("notesSection", Boolean(invoice.notes));
+      setVisible("invoiceFoot", Boolean(hasPayment || invoice.notes));
+      return invoice;
+    }
+
+    function showPdf(file) {
+      let canShareFile = false;
+      try {
+        canShareFile = typeof navigator.share === "function" && navigator.canShare?.({ files: [file] }) === true;
+      } catch {
+        // File sharing is optional. The download and viewer links are always available.
+      }
+      const url = URL.createObjectURL(file);
+      generatedPdf = { file, url };
+      element("downloadPdf").href = url;
+      element("downloadPdf").download = file.name;
+      element("openPdf").href = url;
+      setVisible("sharePdf", canShareFile);
+      setVisible("pdfButton", false);
+      setVisible("pdfHelp", false);
+      setVisible("downloadPdf", true);
+      setVisible("pdfActions", true);
+      element("downloadPdf").focus({ preventScroll: true });
+    }
+
+    function updateDraft() {
+      if (generatedPdf) {
+        const { url } = generatedPdf;
+        generatedPdf = null;
+        element("downloadPdf").removeAttribute("href");
+        element("openPdf").removeAttribute("href");
+        setVisible("downloadPdf", false);
+        setVisible("pdfActions", false);
+        setVisible("pdfButton", true);
+        setVisible("pdfHelp", true);
+        // Let a download or a PDF viewer finish opening the old file.
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }
+      showMessage("invoiceFeedback", "");
+      renderInvoice();
     }
 
     invoiceForm.addEventListener("input", event => {
       if (requiredTextFields.includes(event.target)) event.target.setCustomValidity("");
-      renderInvoice();
+      updateDraft();
     });
-    invoiceForm.addEventListener("change", renderInvoice);
+    invoiceForm.addEventListener("change", updateDraft);
 
     sequenceSettings.addEventListener("toggle", () => {
       if (sequenceSettings.open) {
@@ -677,17 +751,28 @@
 
     invoiceForm.addEventListener("submit", async event => {
       event.preventDefault();
-      if (busy) return;
+      if (busy || generatedPdf) return;
       for (const field of requiredTextFields) {
         field.setCustomValidity(field.value.trim() ? "" : "Completa este campo.");
       }
       if (!invoiceForm.reportValidity()) return;
 
       showMessage("invoiceFeedback", "");
-      if (assignedNumber === null) {
-        setBusy(true);
-        try {
-          const allocated = await readSequence(current => Math.min(current + 1, maxSequence + 1));
+      if (typeof window.createInvoicePdf !== "function" || !window.PDFLib) {
+        showMessage("invoiceFeedback", "El generador de PDF no cargó. Recarga la página e inténtalo de nuevo.");
+        return;
+      }
+      setBusy(true);
+      setText("pdfButtonLabel", "Generando…");
+      try {
+        if (assignedNumber === null) {
+          let allocated;
+          try {
+            allocated = await readSequence(current => Math.min(current + 1, maxSequence + 1));
+          } catch {
+            showMessage("invoiceFeedback", storageMessage);
+            return;
+          }
           if (allocated > maxSequence) {
             updateNextNumber(allocated);
             showMessage("invoiceFeedback", "La serie de numeración se agotó.");
@@ -695,16 +780,29 @@
           }
           assignedNumber = allocated;
           updateNextNumber(allocated + 1);
-        } catch {
-          showMessage("invoiceFeedback", storageMessage);
-          return;
-        } finally {
-          setBusy(false);
+        }
+        const invoice = renderInvoice();
+        const logo = document.querySelector(".brand-logo").getAttribute("src");
+        const pdf = await window.createInvoicePdf(invoice, logo);
+        showPdf(new File([pdf], "Factura-" + invoice.number + ".pdf", { type: "application/pdf" }));
+      } catch {
+        showMessage("invoiceFeedback", "No se pudo generar el PDF. Vuelve a tocar Generar PDF.");
+      } finally {
+        setText("pdfButtonLabel", "Generar PDF");
+        setBusy(false);
+      }
+    });
+
+    element("sharePdf").addEventListener("click", async () => {
+      if (!generatedPdf) return;
+      showMessage("invoiceFeedback", "");
+      try {
+        await navigator.share({ files: [generatedPdf.file] });
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          showMessage("invoiceFeedback", "Usa Descargar PDF o Abrir PDF para guardar el archivo.");
         }
       }
-
-      renderInvoice();
-      window.print();
     });
 
     element("newButton").addEventListener("click", () => {
@@ -712,9 +810,8 @@
       for (const field of requiredTextFields) field.setCustomValidity("");
       element("issueDate").value = today();
       assignedNumber = null;
-      showMessage("invoiceFeedback", "");
       renderNumber();
-      renderInvoice();
+      updateDraft();
       refreshSequence();
       element("client").focus();
     });
@@ -723,6 +820,7 @@
     renderInvoice();
     refreshSequence();
     window.addEventListener("focus", refreshSequence);
+    element("pdfButton").disabled = false;
   </script>
 </body>
 </html>
